@@ -7,6 +7,7 @@ export const attemptLogin = (credentials) =>{
 /*export const attemptLogin = (credentials) =>{
     return {error:'Username not recognised'}
 }*/
+
 /*
 export const attemptLogin = async (credentials) => {
   try {
