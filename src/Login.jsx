@@ -10,6 +10,7 @@ const useStyles = makeStyles(theme => ({
   root: {
   },
   error:{
+    color:'red'
   }
 }));
 
@@ -19,11 +20,13 @@ export default function Login(props) {
   const initStatus = {
       credentials:{username:'', password:''},
       attemptingLogin:false,
+      error:''
   }
   const [status, setStatus] = useState(initStatus);
   const [userJwt, setUserJwt] = useState('');
   //deconstruct
-  const { username, password } = status.credentials;
+  const { credentials, attemptingLogin, error } = status;
+  const { username, password } = credentials;
 
   //user input
   const handleChange = (e) => {
@@ -39,11 +42,13 @@ export default function Login(props) {
           const data = await attemptLogin(status.credentials);
           console.log('data', data)
           if(data.error){
-            //add error (todo? could wipe pw too)
-            //setStatus(status => {...status, attemptingLogin:false, error:data.error})
+            //add error and reset attemptingLogin and password
+            const updatedCredentials = {...credentials, password:''}
+            setStatus(status => ({...status, attemptingLogin:false, error:data.error, credentials:updatedCredentials}));
           }
           else{
-            console.log('success', data)
+            //reset attemptingLogin
+            setStatus(status => ({...status, attemptingLogin:false}));
             //if no error, then data will contain a JWT token (assumed back-end implemtation)
             //store user jwt token in session storage 
             //note alternative options: (a) could use redux store but no need,
@@ -59,7 +64,6 @@ export default function Login(props) {
         alert('Please provide a username and password.')
       }
   }
-  console.log('userJwt', userJwt)
   if(userJwt){
       //user is authenticated
       //redirect to Home page or referrer (defaults to '/')
@@ -84,7 +88,7 @@ export default function Login(props) {
                       Submit
                   </button>
               </div>
-
+              {error && <div className={classes.error}>{error}</div>}
           </form>
       </div>
     );
