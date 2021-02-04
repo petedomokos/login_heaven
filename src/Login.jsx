@@ -12,11 +12,16 @@ const useStyles = makeStyles(theme => ({
 
 export default function Login(props) {
   const classes = useStyles();
-  const username = '';
+  //state
   const password = '';
-  function handleChange(e) {
+  const [credentials, setCredentials] = useState({username:'', password:''});
 
+  //user input
+  function handleChange(e) {
+      const { name, value } = e.target;
+      setCredentials(credentials => ({ ...credentials, [name]: value }));
   }
+  //user submit
   const handleSubmit = (e) => {
   }
 
@@ -26,15 +31,15 @@ export default function Login(props) {
           <form name="form" onSubmit={handleSubmit}>
               <div>
                   <label>Username</label>
-                  <input type="text" name="username" value={username} onChange={handleChange} />
+                  <input type="text" name="username" value={credentials.username} onChange={handleChange} />
               </div>
               <div>
                   <label>Password</label>
-                  <input type="password" name="password" value={password} onChange={handleChange} />
+                  <input type="password" name="password" value={credentials.password} onChange={handleChange} />
               </div>
               <div>
                   <button>
-                      Login
+                      Submit
                   </button>
               </div>
 
