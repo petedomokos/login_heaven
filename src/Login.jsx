@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 //MUI
 import { makeStyles } from '@material-ui/core/styles';
+//helpers
+import { attemptLogin } from './api';
 
 //pass in site theme here
 const useStyles = makeStyles(theme => ({
@@ -13,16 +16,55 @@ const useStyles = makeStyles(theme => ({
 export default function Login(props) {
   const classes = useStyles();
   //state
-  const password = '';
-  const [credentials, setCredentials] = useState({username:'', password:''});
+  const initStatus = {
+      credentials:{username:'', password:''},
+      attemptingLogin:false,
+  }
+  const [status, setStatus] = useState(initStatus);
+  const [userJwt, setUserJwt] = useState('');
+  //deconstruct
+  const { username, password } = status.credentials;
 
   //user input
-  function handleChange(e) {
+  const handleChange = (e) => {
       const { name, value } = e.target;
-      setCredentials(credentials => ({ ...credentials, [name]: value }));
+      setStatus(status => ({...status, credentials:{...status.credentials, [name]: value } }));
   }
-  //user submit
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (username && password) {
+          setStatus(status => ({...status, attemptingLogin:true}))
+          //api call
+          const data = await attemptLogin(status.credentials);
+          console.log('data', data)
+          if(data.error){
+            //add error (todo? could wipe pw too)
+            //setStatus(status => {...status, attemptingLogin:false, error:data.error})
+          }
+          else{
+            console.log('success', data)
+            //if no error, then data will contain a JWT token (assumed back-end implemtation)
+            //store user jwt token in session storage 
+            //note alternative options: (a) could use redux store but no need,
+            // or (b) could use Route to get to Home instead, and pass user to Home as props -but only if
+            //this component was to be integrated with app, rather than standalone login
+            if (typeof window !== "undefined"){
+              sessionStorage.setItem('jwt', JSON.stringify(data.jwt))
+              //update token in component state to trigger re-render and hence Redirect
+              setUserJwt(data.jwt)
+            }
+          }
+      }else{
+        alert('Please provide a username and password.')
+      }
+  }
+  console.log('userJwt', userJwt)
+  if(userJwt){
+      //user is authenticated
+      //redirect to Home page or referrer (defaults to '/')
+      //home page can access token via storage (or via cookie or redux store, depending on implementation above)
+      return(<MockHome/>)
   }
 
   return (
@@ -31,11 +73,11 @@ export default function Login(props) {
           <form name="form" onSubmit={handleSubmit}>
               <div>
                   <label>Username</label>
-                  <input type="text" name="username" value={credentials.username} onChange={handleChange} />
+                  <input type="text" name="username" value={username} onChange={handleChange} />
               </div>
               <div>
                   <label>Password</label>
-                  <input type="password" name="password" value={credentials.password} onChange={handleChange} />
+                  <input type="password" name="password" value={password} onChange={handleChange} />
               </div>
               <div>
                   <button>
@@ -49,7 +91,15 @@ export default function Login(props) {
 }
 
 Login.propTypes = {
+  referrerUrl:PropTypes.string
 }
 Login.defaultProps = {
+  referrerUrl:'/'
+}
+
+const MockHome = () => {
+  return (
+    <div>Home page</div>
+    )
 }
 
