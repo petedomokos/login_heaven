@@ -1,12 +1,12 @@
 
 //mock success
-/*export const attemptLogin = (credentials) =>{
-  return {jwt:'mockToken'}
-}*/
-//mock failure
 export const attemptLogin = (credentials) =>{
-  return {error:'Username not recognised'}
+  return {jwt:'mockToken'}
 }
+//mock failure
+/*export const attemptLogin = (credentials) =>{
+    return {error:'Username not recognised'}
+}*/
 /*
 export const attemptLogin = async (credentials) => {
   try {

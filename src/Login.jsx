@@ -20,12 +20,13 @@ export default function Login(props) {
   const initStatus = {
       credentials:{username:'', password:''},
       attemptingLogin:false,
-      error:''
+      error:'',
+      nrOfAttempts:0
   }
   const [status, setStatus] = useState(initStatus);
   const [userJwt, setUserJwt] = useState('');
   //deconstruct
-  const { credentials, attemptingLogin, error } = status;
+  const { credentials, attemptingLogin, error, nrOfAttempts } = status;
   const { username, password } = credentials;
 
   //user input
@@ -37,7 +38,7 @@ export default function Login(props) {
   const handleSubmit = async (e) => {
       e.preventDefault();
       if (username && password) {
-          setStatus(status => ({...status, attemptingLogin:true}))
+          setStatus(status => ({...status, attemptingLogin:true, nrOfAttempts:nrOfAttempts + 1}))
           //api call
           const data = await attemptLogin(status.credentials);
           console.log('data', data)
@@ -88,6 +89,7 @@ export default function Login(props) {
                       Submit
                   </button>
               </div>
+              {attemptingLogin && <div className={classes.error}>Attempting login...</div>}
               {error && <div className={classes.error}>{error}</div>}
           </form>
       </div>
@@ -106,4 +108,5 @@ const MockHome = () => {
     <div>Home page</div>
     )
 }
+
 
