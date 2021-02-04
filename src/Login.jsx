@@ -67,8 +67,10 @@ export default function Login(props) {
   }
   if(userJwt){
       //user is authenticated
-      //redirect to Home page or referrer (defaults to '/')
-      //home page can access token via storage (or via cookie or redux store, depending on implementation above)
+      //if integrated with app, then redirect to Home page or referrer (defaults to '/')
+      //if standalone, then consider options -> server can store jwt token so it is accessible from other apps (ie for single sign-on)
+      //for now, a mock Home page
+      //home page, and other pages, can access token via session storage
       return(<MockHome/>)
   }
 
