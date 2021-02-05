@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-//MUI
 import { makeStyles } from '@material-ui/core/styles';
 //helpers
 import { attemptLogin } from './api';
