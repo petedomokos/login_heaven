@@ -1,79 +1,70 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { Redirect } from 'react-router-dom';
 //MUI
 import { makeStyles } from '@material-ui/core/styles';
-//helpers
-import { attemptLogin } from './api';
+
+import { attemptLogin } from '/api';
 
 //pass in site theme here
 const useStyles = makeStyles(theme => ({
   root: {
   },
   error:{
-    color:'red'
   }
 }));
 
 export default function Login(props) {
   const classes = useStyles();
-  //state
   const initStatus = {
-      credentials:{username:'', password:''},
-      attemptingLogin:false,
-      error:'',
-      nrOfAttempts:0
+    credentials:{username:'', password:''},
+    attemptingLogin:false,
+    error:'',
+    nrOfAttempts:0
   }
   const [status, setStatus] = useState(initStatus);
-  const [userJwt, setUserJwt] = useState('');
-  //deconstruct
-  const { credentials, attemptingLogin, error, nrOfAttempts } = status;
-  const { username, password } = credentials;
+  const [userToken, setUserToken] = useState('');
 
-  //user input
-  const handleChange = (e) => {
+  function handleChange(e) {
       const { name, value } = e.target;
-      setStatus(status => ({...status, credentials:{...status.credentials, [name]: value } }));
+      const updatedCredentials = { ...credentials, [name]: value };
+      //update credentials and remove error message
+      setStatus(status => {...status, credentials:updatedCredentials, error:''})
   }
 
+  //await
   const handleSubmit = async (e) => {
       e.preventDefault();
-      if (username && password) {
-          setStatus(status => ({...status, attemptingLogin:true, nrOfAttempts:nrOfAttempts + 1}))
-          //api call
-          const data = await attemptLogin(status.credentials);
-          console.log('data', data)
+
+      if (username && pw) {
+          setStatus(status => {...status, attemptingLogin:true, nrOfAttempts:status.nrOfAttempts + 1})
+          const data = await attemptLogin(credentials)
           if(data.error){
-            //add error and reset attemptingLogin and password
-            const updatedCredentials = {...credentials, password:''}
-            setStatus(status => ({...status, attemptingLogin:false, error:data.error, credentials:updatedCredentials}));
+            //add error (todo? could wipe pw too)
+            setStatus(status => {...status, attemptingLogin:false, error:data.error})
           }
           else{
-            //reset attemptingLogin
-            setStatus(status => ({...status, attemptingLogin:false}));
             //if no error, then data will contain a JWT token (assumed back-end implemtation)
-            //store user jwt token in session storage 
-            //note alternative options: (a) could use redux store but no need,
-            // or (b) could use Route to get to Home instead, and pass user to Home as props -but only if
-            //this component was to be integrated with app, rather than standalone login
+            //store user token in session storage (note: could use redux store)
+            // or could use Route to get to Home instead, and pass user to Home as props
             if (typeof window !== "undefined"){
-              sessionStorage.setItem('jwt', JSON.stringify(data.jwt))
-              //update token in component state to trigger re-render and hence Redirect
-              setUserJwt(data.jwt)
+              sessionStorage.setItem('jwt', JSON.stringify(jwt))
+              //update token in component state to trigger re-render and Redirect
+              setUserToken(data.jwt)
             }
           }
       }else{
         alert('Please provide a username and password.')
       }
   }
-  if(userJwt){
+   if(userToken){
+      //do we need to check isAuthenticated - should be checked already?
       //user is authenticated
-      //if integrated with app, then redirect to Home page or referrer (defaults to '/')
-      //if standalone, then consider options -> server can store jwt token so it is accessible from other apps (ie for single sign-on)
-      //for now, a mock Home page
-      //home page, and other pages, can access token via session storage
-      return(<MockHome/>)
+      //redirect to Home page or referrer (defaults to '/')
+      //home page can access token via storage (or via cookie or redux store, depending on implementation above)
+      return(<Redirect to={referrerUrl} />);
   }
 
+  //todo - handle nrOfAttempts at max limit
   return (
       <div className={classes.root}>
           <h2>Login</h2>
@@ -88,10 +79,9 @@ export default function Login(props) {
               </div>
               <div>
                   <button>
-                      Submit
+                      Login
                   </button>
               </div>
-              {attemptingLogin && <div className={classes.error}>Attempting login...</div>}
               {error && <div className={classes.error}>{error}</div>}
           </form>
       </div>
@@ -104,11 +94,4 @@ Login.propTypes = {
 Login.defaultProps = {
   referrerUrl:'/'
 }
-
-const MockHome = () => {
-  return (
-    <div>Home page</div>
-    )
-}
-
 
